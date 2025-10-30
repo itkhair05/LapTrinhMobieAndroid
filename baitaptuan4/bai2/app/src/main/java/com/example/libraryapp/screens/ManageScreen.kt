@@ -1,5 +1,6 @@
 package com.example.libraryapp.screens
-
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,13 +11,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.libraryapp.model.Book
 import com.example.libraryapp.viewmodel.LibraryViewModel
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+
 
 @Composable
 fun ManageScreen(viewModel: LibraryViewModel) {
     val students = viewModel.students
     var currentIndex by remember { mutableStateOf(0) }
     val currentStudent = students.getOrNull(currentIndex)
+
+    var showAddBookDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -32,7 +39,7 @@ fun ManageScreen(viewModel: LibraryViewModel) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Ô nhập sinh viên
+        // Ô hiển thị sinh viên hiện tại
         OutlinedTextField(
             value = currentStudent?.name ?: "",
             onValueChange = {},
@@ -45,7 +52,11 @@ fun ManageScreen(viewModel: LibraryViewModel) {
 
         // Nút thay đổi sinh viên
         Button(
-            onClick = { currentIndex = (currentIndex + 1) % students.size },
+            onClick = {
+                if (students.isNotEmpty()) {
+                    currentIndex = (currentIndex + 1) % students.size
+                }
+            },
             modifier = Modifier.align(Alignment.End)
         ) {
             Text("Thay đổi")
@@ -53,8 +64,8 @@ fun ManageScreen(viewModel: LibraryViewModel) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Danh sách sách
-        Text("Danh sách sách", style = MaterialTheme.typography.titleMedium)
+        // Danh sách sách đang mượn
+        Text("📚 Danh sách sách đã mượn", style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(10.dp))
 
         val borrowedBooks = currentStudent?.borrowedBooks ?: emptyList()
@@ -68,7 +79,7 @@ fun ManageScreen(viewModel: LibraryViewModel) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    "Bạn chưa mượn quyển sách nào\nNhấn 'Thêm' để bắt đầu hành trình đọc sách!",
+                    "Bạn chưa mượn quyển sách nào\nNhấn 'Thêm' để chọn sách!",
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -91,12 +102,17 @@ fun ManageScreen(viewModel: LibraryViewModel) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Checkbox(
-                                checked = true,
-                                onCheckedChange = {},
-                                enabled = false
-                            )
                             Text(book.title, modifier = Modifier.weight(1f))
+                            IconButton(onClick = {
+                                currentStudent?.let {
+                                    viewModel.removeBookFromStudent(it, book)
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Xóa sách"
+                                )
+                            }
                         }
                     }
                 }
@@ -107,15 +123,84 @@ fun ManageScreen(viewModel: LibraryViewModel) {
 
         // ✅ Nút thêm sách
         Button(
-            onClick = {
-                currentStudent?.let {
-                    viewModel.addBookForStudent(it)
-                }
-            },
+            onClick = { showAddBookDialog = true },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Thêm")
         }
 
+        // 🔹 Hộp thoại chọn sách
+        if (showAddBookDialog) {
+            AddBookDialog(
+                allBooks = viewModel.books,
+                onConfirm = { selectedBooks ->
+                    currentStudent?.let {
+                        viewModel.addBooksForStudent(it, selectedBooks)
+                    }
+                    showAddBookDialog = false
+                },
+                onCancel = { showAddBookDialog = false }
+            )
+        }
     }
 }
+
+@Composable
+fun AddBookDialog(
+    allBooks: List<Book>,
+    onConfirm: (List<Book>) -> Unit,
+    onCancel: () -> Unit
+) {
+    val selectedBooks = remember { mutableStateListOf<Book>() }
+
+    // 🔹 Lọc chỉ những sách chưa được mượn
+    val availableBooks = allBooks.filter { it.isBorrowed.not() }
+
+    AlertDialog(
+        onDismissRequest = onCancel,
+        title = { Text("Chọn sách để thêm") },
+        text = {
+            if (availableBooks.isEmpty()) {
+                Text("Hiện không còn sách nào trống để thêm.")
+            } else {
+                // 🔹 Thêm thanh cuộn cho danh sách
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 300.dp)
+                        .padding(top = 4.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    availableBooks.forEach { book ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = selectedBooks.contains(book),
+                                onCheckedChange = { checked ->
+                                    if (checked) selectedBooks.add(book)
+                                    else selectedBooks.remove(book)
+                                }
+                            )
+                            Text(book.title)
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(selectedBooks) }) {
+                Text("Lưu")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onCancel) {
+                Text("Hủy")
+            }
+        }
+    )
+}
+

@@ -13,8 +13,8 @@ object LibraryRepository {
     )
 
     val students = mutableListOf(
-        Student(1, "Bạn A", mutableListOf(books[0], books[1])), // 2 sách
-        Student(2, "Bạn B", mutableListOf(books[2])),           // 1 sách
-        Student(3, "Bạn C", mutableListOf())                    // 0 sách
+        Student(1, "Bạn A", mutableListOf(books[0], books[1])),
+        Student(2, "Bạn B", mutableListOf(books[2])),
+        Student(3, "Bạn C", mutableListOf())
     )
 }

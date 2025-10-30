@@ -8,7 +8,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -19,6 +21,7 @@ import com.example.uthnavigation.navigation.Screen
 @Composable
 fun OnboardScreen(navController: NavController, pageIndex: Int) {
     val page = OnboardRepository.pages[pageIndex]
+    val blueColor = Color(0xFF2196F3) // 🌊 Màu xanh chủ đạo
 
     Column(
         modifier = Modifier
@@ -32,7 +35,7 @@ fun OnboardScreen(navController: NavController, pageIndex: Int) {
             onClick = { navController.navigate(Screen.Home.route) },
             modifier = Modifier.align(Alignment.End)
         ) {
-            Text("Skip")
+            Text("Skip", color = blueColor)
         }
 
         // ====== Ảnh minh họa ======
@@ -48,14 +51,16 @@ fun OnboardScreen(navController: NavController, pageIndex: Int) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = page.title,
-                fontSize = 24.sp,
-                color = MaterialTheme.colorScheme.primary
+                fontSize = 26.sp,
+                fontWeight = FontWeight.Bold,
+                color = blueColor // 💙 Tiêu đề màu xanh
             )
             Spacer(modifier = Modifier.height(10.dp))
             Text(
                 text = page.description,
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -71,14 +76,14 @@ fun OnboardScreen(navController: NavController, pageIndex: Int) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
                         contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = blueColor // 💙 Nút back màu xanh
                     )
                 }
             } else {
-                Spacer(modifier = Modifier.width(48.dp)) // Giữ bố cục cân
+                Spacer(modifier = Modifier.width(48.dp))
             }
 
-            // Nút Next chiếm toàn bộ phần còn lại
+            // Nút Next hoặc Get Started
             Button(
                 onClick = {
                     when (pageIndex) {
@@ -88,9 +93,13 @@ fun OnboardScreen(navController: NavController, pageIndex: Int) {
                     }
                 },
                 modifier = Modifier
-                    .weight(1f)
+                    .fillMaxWidth()
                     .height(56.dp)
-                    .padding(start = 12.dp)
+                    .padding(horizontal = 10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = blueColor, // 💙 Nút chính màu xanh
+                    contentColor = Color.White
+                )
             ) {
                 Text(if (pageIndex == 2) "Get Started" else "Next")
             }
