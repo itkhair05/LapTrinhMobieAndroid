@@ -1,16 +1,17 @@
 package com.example.maytinh
+
 fun main() {
     println("=== CHUONG TRINH MAY TINH CO BAN ===")
 
     while (true) {
         print("Nhap so thu nhat: ")
-        val a = readDouble()
+        val a = readInt()
 
         print("Nhap phep toan (+, -, *, /): ")
         val op = readln().trim()
 
         print("Nhap so thu hai: ")
-        val b = readDouble()
+        val b = readInt()
 
         val result = calculate(a, b, op)
 
@@ -27,25 +28,28 @@ fun main() {
     }
 }
 
-fun calculate(a: Double, b: Double, op: String): String {
+fun calculate(a: Int, b: Int, op: String): String {
     return when (op) {
         "+" -> "${a + b}"
         "-" -> "${a - b}"
         "*" -> "${a * b}"
-        "/" -> if (b != 0.0) "${a / b}" else "Loi: khong the chia cho 0"
+        "/" -> if (b != 0) {
+            val kq = a.toDouble() / b.toDouble()
+            "Ket qua chia: $kq"
+        } else {
+            "Loi: khong the chia cho 0"
+        }
         else -> "Loi: phep toan khong hop le"
     }
 }
 
-fun readDouble(): Double {
+fun readInt(): Int {
     while (true) {
         try {
             val input = readln().trim()
-            return input.toDouble()
+            return input.toInt()
         } catch (e: Exception) {
             print("Gia tri khong hop le, hay nhap lai: ")
         }
     }
 }
-
-
